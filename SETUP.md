@@ -58,10 +58,10 @@ The function reads these **server** env vars (set them in Vercel, not in `src/`)
 | --- | --- |
 | `SMTP_HOST` | `smtp.gmail.com` |
 | `SMTP_PORT` | `465` |
-| `SMTP_USER` | the Gmail that sends the alerts |
+| `SMTP_USER` | the Gmail that owns the app password (`vbuildit8@gmail.com`) |
 | `SMTP_PASS` | that Gmail's **app password** (16 chars, no spaces) |
 | `LEAD_NOTIFY_TO` | where the alerts should go (defaults to `SMTP_USER`) |
-| `LEAD_NOTIFY_FROM` | display name of the sender, e.g. `KProjectXX Website <you@gmail.com>` |
+| `LEAD_NOTIFY_FROM` | display name of the sender, e.g. `KProjectXX Website <vbuildit8@gmail.com>` |
 | `TEAM_WHATSAPP` | team number (digits with country code) for the "Share to team" button |
 
 Set them from a terminal:
@@ -69,10 +69,10 @@ Set them from a terminal:
 ```bash
 vercel env add SMTP_HOST production --value smtp.gmail.com
 vercel env add SMTP_PORT production --value 465
-vercel env add SMTP_USER production --value teamkprojectxx@gmail.com
+vercel env add SMTP_USER production --value vbuildit8@gmail.com
 vercel env add SMTP_PASS production --value <your-app-password> --sensitive
-vercel env add LEAD_NOTIFY_TO production --value teamkprojectxx@gmail.com
-vercel env add LEAD_NOTIFY_FROM production --value "KProjectXX Website <teamkprojectxx@gmail.com>"
+vercel env add LEAD_NOTIFY_TO production --value vbuildit8@gmail.com
+vercel env add LEAD_NOTIFY_FROM production --value "KProjectXX Website <vbuildit8@gmail.com>"
 vercel env add TEAM_WHATSAPP production --value 918008115595
 ```
 

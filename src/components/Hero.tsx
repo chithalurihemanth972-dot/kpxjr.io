@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Trophy } from "lucide-react";
 import { HERO } from "../data/content";
 import { scrollToId, useCountUp } from "../lib/hooks";
 
@@ -64,13 +64,36 @@ export default function Hero({ onExplore, onWork }: { onExplore: () => void; onW
             </button>
           </div>
 
-          <div className="mt-14 flex flex-wrap gap-x-12 gap-y-6 border-t border-white/10 pt-8 max-w-xl">
+          <div className="mt-10 flex flex-wrap gap-x-10 gap-y-6 border-t border-white/10 pt-7 max-w-2xl">
             {HERO.counters.map((c) => (
               <Counter key={c.label} {...c} />
             ))}
             <p className="basis-full text-sm text-mist/80">
               Workshops run at {HERO.chips.map((c) => `${c.label} (${c.detail})`).join(" and ")}.
             </p>
+          </div>
+
+          {/* ── Achievements ── */}
+          <div className="mt-7 max-w-2xl rounded-2xl border border-amber/25 bg-gradient-to-br from-amber/[0.09] to-transparent p-5 sm:p-6">
+            <div className="flex items-start gap-4">
+              <div className="shrink-0 rounded-xl border border-amber/30 bg-amber/10 p-2.5">
+                <Trophy className="text-amber" size={22} strokeWidth={2} aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <p className="tech-label text-[10px] text-amber">{HERO.achievements.kicker}</p>
+                <p className="mt-1.5 font-head font-bold text-lg sm:text-xl text-white leading-snug">
+                  {HERO.achievements.title}
+                </p>
+                <ul className="mt-3 space-y-1.5">
+                  {HERO.achievements.points.map((p) => (
+                    <li key={p} className="flex gap-2.5 text-[13px] text-mist leading-snug">
+                      <Check className="mt-[3px] shrink-0 text-amber/80" size={13} strokeWidth={3} aria-hidden="true" />
+                      <span>{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -89,6 +112,13 @@ export default function Hero({ onExplore, onWork }: { onExplore: () => void; onW
           <div className="float-badge absolute right-2 sm:right-4 bottom-[16%] rounded-2xl px-4 py-3" style={{ ["--fd" as string]: "-3.5s" }}>
             <p className="font-head font-bold text-base text-white leading-none">KPX Jr</p>
             <p className="mt-1 text-xs text-amber">4 levels · 24 kits</p>
+          </div>
+          <div className="float-badge absolute right-2 sm:right-6 top-[20%] hidden sm:flex items-center gap-2.5 rounded-2xl px-4 py-3" style={{ ["--fd" as string]: "-2.2s" }}>
+            <Trophy className="shrink-0 text-amber" size={18} strokeWidth={2} aria-hidden="true" />
+            <div>
+              <p className="font-head font-bold text-lg text-white leading-none">45+</p>
+              <p className="mt-1 text-xs text-amber">national wins</p>
+            </div>
           </div>
         </div>
       </div>

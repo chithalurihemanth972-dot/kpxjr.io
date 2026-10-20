@@ -23,8 +23,18 @@ export const HERO = {
   subline: BRAND.subline,
   counters: [
     { value: 1000, suffix: "+", label: "B.Tech students trained" },
+    { value: 45, suffix: "+", label: "National-level robotics competitions won" },
     { value: 4, suffix: "+", label: "Hands-on robotics workshops" },
   ],
+  achievements: {
+    kicker: "// Achievements",
+    title: "45+ national-level robotics competitions won",
+    points: [
+      "Competition-tested machines across combat, rover and maze categories",
+      "In-house chassis, weapon systems, electronics and control stacks",
+      "Students shipping winning robots straight out of the KPX Jr pathway",
+    ],
+  },
   chips: [
     { label: "Sreenidhi Institute", detail: "3+ workshops" },
     { label: "VBIT", detail: "1 workshop" },
@@ -86,6 +96,17 @@ export const ECOSYSTEM = {
   ],
 };
 
+export interface FieldUnit {
+  code: string;
+  name: string;
+  desc: string;
+  tags: string[];
+  /** Set `image` to your photo path (e.g. "/images/vajra.jpg") to replace the placeholder slot. */
+  image: string;
+  /** Which 3D model stands in when there is no photo. */
+  model: "vajra" | "mafiya" | "warbot";
+}
+
 export const PROJECTS = {
   kicker: "// 03 — Field Units",
   title: "Featured Projects",
@@ -96,8 +117,8 @@ export const PROJECTS = {
       name: "Vajra",
       desc: "Autonomous dairy-farm dung-removal rover concept.",
       tags: ["Autonomous", "Agri-Robotics", "Rover"],
-      /** Set `image` to your photo path (e.g. "/images/vajra.jpg") to replace the placeholder slot. */
       image: "",
+      model: "vajra",
     },
     {
       code: "UNIT-02",
@@ -105,8 +126,17 @@ export const PROJECTS = {
       desc: "Rocker-bogie rover developed for a robotics challenge.",
       tags: ["Rocker-Bogie", "Mobility", "Challenge Build"],
       image: "",
+      model: "mafiya",
     },
-  ],
+    {
+      code: "UNIT-03",
+      name: "Rynx",
+      desc: "A 15 kg War Bot built for the national-level combat category — hardened chassis, high-torque drivetrain and a full weapon system.",
+      tags: ["War Bot", "15 kg", "Combat Robotics"],
+      image: "",
+      model: "warbot",
+    },
+  ] satisfies FieldUnit[],
   process: {
     title: "How we build",
     steps: [

@@ -5,6 +5,7 @@ import { SectionHead } from "./HudFrame";
 import type { RoverKind } from "./Rover3D";
 
 const Rover3D = lazy(() => import("./Rover3D"));
+const WarBot3D = lazy(() => import("./WarBot3D"));
 const KINDS: RoverKind[] = ["vajra", "mafiya"];
 
 /* ═══════════════════════════════════════════════════════════════
@@ -24,14 +25,18 @@ export default function Projects() {
           {PROJECTS.items.map((p, i) => (
             <article key={p.name} className="glass-card overflow-hidden" style={{ ["--reveal-delay" as string]: `${i * 120}ms` }}>
               {p.image ? (
-                <img src={p.image} alt={`${p.name} rover`} className="w-full aspect-[16/10] object-cover" loading="lazy" />
+                <img src={p.image} alt={`${p.name} project`} className="w-full aspect-[16/10] object-cover" loading="lazy" />
               ) : (
                 <div
                   className="relative aspect-[16/10] border-b border-white/5"
                   style={{ background: "radial-gradient(60% 70% at 50% 55%, rgba(91,124,255,0.28), transparent 75%)" }}
                 >
                   <Suspense fallback={null}>
-                    <Rover3D kind={KINDS[i % KINDS.length]} className="absolute inset-0" />
+                    {p.model === "warbot" ? (
+                      <WarBot3D className="absolute inset-0" />
+                    ) : (
+                      <Rover3D kind={KINDS[i % KINDS.length]} className="absolute inset-0" />
+                    )}
                   </Suspense>
                 </div>
               )}

@@ -33,7 +33,7 @@ export const CONFIG = {
   /** Public contact placeholders shown in the footer */
   CONTACT: {
     phone: "+91 80081 15595",
-    email: "hello@kprojectxx.in",
+    email: "teamkprojectxx@gmail.com",
     instagram: "https://instagram.com/kprojectxx",
     linkedin: "https://linkedin.com/company/kprojectxx",
     location: "Hyderabad, Telangana, India",

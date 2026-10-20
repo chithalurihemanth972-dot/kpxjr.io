@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ArrowRight, CheckCircle2, Lock, Loader2, MessageCircle, PhoneCall } from "lucide-react";
 import { KPX, PAGES, type JrLevel } from "../../data/content";
 import { useReveal } from "../../lib/hooks";
-import { sendLeadToBackend, whatsappLink, type LeadPayload } from "../../lib/lead";
+import { queueLead, sendLeadToBackend, whatsappLink, type LeadPayload } from "../../lib/lead";
 import { useSite } from "../../context/SiteContext";
 import { DynIcon } from "../IconMap";
 import { HexIcon, HudCorners } from "../HudFrame";
@@ -278,6 +278,8 @@ export function FinalCta({ lead }: { lead: LeadPayload | null }) {
       await sendLeadToBackend({ ...lead, source: "callback_request", timestamp: new Date().toISOString() });
       setState("sent");
     } catch {
+      /* Mail server hiccup — park the lead and retry on the next visit. */
+      queueLead({ ...lead, source: "callback_request", timestamp: new Date().toISOString() });
       setState("error");
     }
   };

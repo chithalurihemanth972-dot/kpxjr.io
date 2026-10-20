@@ -95,6 +95,57 @@ export async function sendLeadToBackend(payload: LeadPayload, signals: LeadSpamS
   }
 }
 
+/* ── Offline / failed-send queue ────────────────────────────────
+   If the mail server is unreachable when someone submits the form,
+   the lead is parked in localStorage and retried on the next visit.
+   A visitor is never lost because our mail server hiccuped. */
+
+const MAX_PENDING = 20;
+
+function readPending(): LeadPayload[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.pending);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? (list as LeadPayload[]).slice(0, MAX_PENDING) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writePending(list: LeadPayload[]) {
+  try {
+    if (list.length) localStorage.setItem(STORAGE_KEYS.pending, JSON.stringify(list));
+    else localStorage.removeItem(STORAGE_KEYS.pending);
+  } catch {
+    /* private mode — non-fatal */
+  }
+}
+
+/** Remember a lead we could not deliver, so it can be retried later. */
+export function queueLead(lead: LeadPayload) {
+  const list = readPending().filter((l) => l.timestamp !== lead.timestamp);
+  list.push(lead);
+  writePending(list.slice(-MAX_PENDING));
+}
+
+/** Retry every parked lead. Returns how many were delivered. */
+export async function flushPendingLeads(): Promise<number> {
+  const list = readPending();
+  if (!list.length) return 0;
+  const remaining: LeadPayload[] = [];
+  let sent = 0;
+  for (const lead of list) {
+    try {
+      await sendLeadToBackend(lead);
+      sent++;
+    } catch {
+      remaining.push(lead);
+    }
+  }
+  writePending(remaining);
+  return sent;
+}
+
 /* ── Team notification helpers ──────────────────────────────── */
 
 /** wa.me chat link (optionally pre-filled with a message). */

@@ -31,6 +31,12 @@ const NOTIFY_FROM = process.env.LEAD_NOTIFY_FROM || `KProjectXX Website <${SMTP_
 
 const TEAM_WHATSAPP = process.env.TEAM_WHATSAPP || "918008115595";
 
+/* Optional safety net: if SMTP is down (or the app password is wrong),
+   the lead is POSTed here instead. Point it at a Google Apps Script
+   `/exec` URL (see lead-notifier.gs) and the lead lands in a Google
+   Sheet and still gets emailed — with no password needed. */
+const FALLBACK_URL = process.env.LEAD_FALLBACK_WEBHOOK_URL || "";
+
 /* ── Limits ──────────────────────────────────────────────────── */
 const MAX_NAME = 80;
 const MAX_SCHOOL = 120;
@@ -215,6 +221,26 @@ function buildEmail(lead: ParsedLead) {
   return { subject: `${isCallback ? "Callback request" : "New KPX Jr lead"} — ${lead.name} (${lead.type})`, html, text };
 }
 
+/**
+ * Safety net for a failed SMTP send: hand the lead to the fallback
+ * webhook. Apps Script answers with the plain text "ok" on success.
+ */
+async function postFallback(lead: ParsedLead): Promise<boolean> {
+  if (!FALLBACK_URL) return false;
+  try {
+    const res = await fetch(FALLBACK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(lead),
+    });
+    const text = (await res.text()).trim().toLowerCase();
+    return res.ok && text === "ok";
+  } catch (err) {
+    console.error("[lead-mailer] fallback webhook failed:", err);
+    return false;
+  }
+}
+
 /* ── Handler ─────────────────────────────────────────────────── */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET") {
@@ -267,17 +293,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       auth: { user: SMTP_USER, pass: SMTP_PASS },
     });
     const { subject, html, text } = buildEmail(lead);
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: NOTIFY_FROM,
       to: NOTIFY_TO,
       subject,
       text,
       html,
     });
+    console.log("[lead-mailer] delivered:", info.messageId, "|", info.response);
     return res.status(200).json({ ok: true });
   } catch (err) {
     /* Never leak SMTP internals to the caller — log server-side only. */
     console.error("[lead-mailer] send failed:", err);
+
+    /* The lead still matters more than the email. Try the fallback
+       (Apps Script → Google Sheet + MailApp) before giving up. */
+    if (await postFallback(lead)) {
+      return res.status(200).json({ ok: true, delivered: false, fallback: true });
+    }
     return res.status(502).json({ ok: false, error: "Could not send notification" });
   }
 }

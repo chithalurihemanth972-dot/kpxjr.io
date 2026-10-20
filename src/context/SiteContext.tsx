@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { getSavedLead, isUnlocked, type LeadPayload } from "../lib/lead";
+import { flushPendingLeads, getSavedLead, isUnlocked, type LeadPayload } from "../lib/lead";
 import { navigate, readPath } from "../lib/router";
 import { scrollToId } from "../lib/hooks";
 
@@ -97,6 +97,11 @@ export function SiteProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("storage", sync);
       window.removeEventListener("hashchange", sync);
     };
+  }, []);
+
+  /* Retry any lead that could not be delivered last time. */
+  useEffect(() => {
+    void flushPendingLeads();
   }, []);
 
   return (

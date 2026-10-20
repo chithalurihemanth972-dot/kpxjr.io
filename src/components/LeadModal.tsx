@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, GraduationCap, Loader2, Radar, Users, X } from "lucide-react";
 import { LEAD_FORM } from "../data/content";
 import { useLockBody } from "../lib/hooks";
-import { isValidIndianMobile, persistUnlock, sanitizeMobile, sendLeadToBackend, teamNotifyMessage, whatsappLink, type LeadPayload, type LeadRole } from "../lib/lead";
+import { isValidIndianMobile, persistUnlock, queueLead, sanitizeMobile, sendLeadToBackend, teamNotifyMessage, whatsappLink, type LeadPayload, type LeadRole } from "../lib/lead";
 import { HudCorners } from "./HudFrame";
 import { cn } from "../utils/cn";
 
@@ -33,6 +33,7 @@ export default function LeadModal({ open, onClose, onSuccess }: Props) {
   const [school, setSchool] = useState("");
   const [consent, setConsent] = useState(false);
   const [honey, setHoney] = useState(""); // honeypot — invisible to humans
+  const [queued, setQueued] = useState(false); // delivery failed → retry later
   const [openedAt, setOpenedAt] = useState(() => Date.now());
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [phase, setPhase] = useState<"form" | "sending" | "success">("form");
@@ -56,6 +57,7 @@ export default function LeadModal({ open, onClose, onSuccess }: Props) {
       // reset when closed so a second open starts fresh
       setPhase("form");
       setErrors({});
+      setQueued(false);
     }
   }, [open]);
 
@@ -105,8 +107,14 @@ export default function LeadModal({ open, onClose, onSuccess }: Props) {
       /* Let the success animation play, then hand over to the app. */
       setTimeout(() => onSuccess(lead), 2100);
     } catch {
-      setPhase("form");
-      setErrors({ submit: LEAD_FORM.errors.submit });
+      /* Our mail server is unreachable — that is our problem, not the
+         visitor's. Keep the lead, unlock the content, and retry delivery
+         on the next visit instead of locking them out. */
+      queueLead(lead);
+      persistUnlock(lead);
+      setQueued(true);
+      setPhase("success");
+      setTimeout(() => onSuccess(lead), 2100);
     }
   };
 
@@ -139,6 +147,11 @@ export default function LeadModal({ open, onClose, onSuccess }: Props) {
             <p className="mt-2 text-mist text-sm">
               Welcome to KPX Jr <span aria-hidden="true">—</span> decrypting the program…
             </p>
+            {queued && (
+              <p className="mt-2 text-[11px] text-amber/90">
+                Our mail server is slow right now — your details are saved and we will retry automatically.
+              </p>
+            )}
             <p className="mt-5 tech-label text-[10px] text-electric-soft">
               {name.trim().toUpperCase()} · +91 {mobile}
             </p>

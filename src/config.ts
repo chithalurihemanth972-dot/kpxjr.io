@@ -54,4 +54,5 @@ export const CONFIG = {
 export const STORAGE_KEYS = {
   lead: "kpx_lead_v1",
   unlocked: "kpx_unlocked_v1",
+  pending: "kpx_pending_v1",
 } as const;

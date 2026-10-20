@@ -80,8 +80,7 @@ export default function Hero({ onExplore, onWork }: { onExplore: () => void; onW
                 <Trophy className="text-amber" size={22} strokeWidth={2} aria-hidden="true" />
               </div>
               <div className="min-w-0">
-                <p className="tech-label text-[10px] text-amber">{HERO.achievements.kicker}</p>
-                <p className="mt-1.5 font-head font-bold text-lg sm:text-xl text-white leading-snug">
+                <p className="font-head font-bold text-lg sm:text-xl text-white leading-snug">
                   {HERO.achievements.title}
                 </p>
                 <ul className="mt-3 space-y-1.5">
@@ -112,13 +111,6 @@ export default function Hero({ onExplore, onWork }: { onExplore: () => void; onW
           <div className="float-badge absolute right-2 sm:right-4 bottom-[16%] rounded-2xl px-4 py-3" style={{ ["--fd" as string]: "-3.5s" }}>
             <p className="font-head font-bold text-base text-white leading-none">KPX Jr</p>
             <p className="mt-1 text-xs text-amber">4 levels · 24 kits</p>
-          </div>
-          <div className="float-badge absolute right-2 sm:right-6 top-[20%] hidden sm:flex items-center gap-2.5 rounded-2xl px-4 py-3" style={{ ["--fd" as string]: "-2.2s" }}>
-            <Trophy className="shrink-0 text-amber" size={18} strokeWidth={2} aria-hidden="true" />
-            <div>
-              <p className="font-head font-bold text-lg text-white leading-none">45+</p>
-              <p className="mt-1 text-xs text-amber">national wins</p>
-            </div>
           </div>
         </div>
       </div>

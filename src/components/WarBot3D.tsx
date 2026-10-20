@@ -5,7 +5,7 @@ import { prefersReducedMotion } from "../lib/hooks";
 import { COLORS, Glow, hasWebGL, Metal, RBox, Studio, useShadowTexture } from "./Robot3D";
 
 /* ═══════════════════════════════════════════════════════════════
-   WarBot3D — "Rynx", the 15 kg War Bot.
+   WarBot3D — "Rynox", the 15 kg War Bot.
 
    A 15 kg combat robot: low hardened chassis, wedge front, two
    drum wheels and a full-width spinning weapon bar. Built from

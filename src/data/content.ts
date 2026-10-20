@@ -27,7 +27,6 @@ export const HERO = {
     { value: 4, suffix: "+", label: "Hands-on robotics workshops" },
   ],
   achievements: {
-    kicker: "// Achievements",
     title: "45+ national-level robotics competitions won",
     points: [
       "Competition-tested machines across combat, rover and maze categories",
@@ -130,7 +129,7 @@ export const PROJECTS = {
     },
     {
       code: "UNIT-03",
-      name: "Rynx",
+      name: "Rynox",
       desc: "A 15 kg War Bot built for the national-level combat category — hardened chassis, high-torque drivetrain and a full weapon system.",
       tags: ["War Bot", "15 kg", "Combat Robotics"],
       image: "",

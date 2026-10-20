@@ -1,174 +1,260 @@
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
 import * as THREE from "three";
 import { prefersReducedMotion } from "../lib/hooks";
-import { COLORS, Glow, hasWebGL, Metal, RBox, Studio, useShadowTexture } from "./Robot3D";
+import { RBox } from "./Robot3D";
+import { Amber, Bolt, Cyan, DarkSteel, Deck, Graphite, GraphiteLight, Panel, Rod, Shadow, Stage, Steel, Wheel } from "./project-kit";
 
 /* ═══════════════════════════════════════════════════════════════
-   WarBot3D — "Rynox", the 15 kg War Bot.
+   WarBot3D — "Rynox", the 15 kg war bot.
 
-   A 15 kg combat robot: low hardened chassis, wedge front, two
-   drum wheels and a full-width spinning weapon bar. Built from
-   primitives like every other model on this site.
+   Low armoured hull, exposed drive wheels, hardened front wedge with
+   teeth and a front-mounted horizontal bar spinner on a machined hub.
    ═══════════════════════════════════════════════════════════════ */
 
-const SHELL = "#2b3040";
-const SHELL_DARK = "#181c27";
-const STEEL = "#aab2c4";
+const WEDGE_TILT = 0.34;
 
-/** Drum wheel — a wide cylinder with visible tread teeth. */
-function Drum({ position, spin }: { position: [number, number, number]; spin: React.RefObject<number> }) {
+/** Horizontal bar spinner, front mounted. */
+function Spinner({ spin }: { spin: React.RefObject<number> }) {
   const ref = useRef<THREE.Group>(null);
   useFrame((_, dt) => {
-    if (ref.current && !prefersReducedMotion()) ref.current.rotation.z -= dt * (spin.current ?? 1) * 3;
+    if (ref.current && spin.current && !prefersReducedMotion()) ref.current.rotation.y += dt * spin.current * 5;
   });
+
   return (
-    <group position={position} rotation={[Math.PI / 2, 0, 0]}>
+    <group position={[1.18, 0.34, 0]}>
+      {/* hub */}
+      <mesh>
+        <cylinderGeometry args={[0.14, 0.16, 0.24, 24]} />
+        <Steel />
+      </mesh>
+      <mesh position={[0, 0.14, 0]}>
+        <cylinderGeometry args={[0.09, 0.12, 0.055, 20]} />
+        <DarkSteel />
+      </mesh>
+      {Array.from({ length: 6 }).map((_, i) => {
+        const a = (i / 6) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.12, 0.13, Math.sin(a) * 0.12]}>
+            <cylinderGeometry args={[0.018, 0.018, 0.035, 6]} />
+            <DarkSteel />
+          </mesh>
+        );
+      })}
       <group ref={ref}>
+        {/* bar */}
         <mesh>
-          <cylinderGeometry args={[0.42, 0.42, 0.3, 32]} />
-          <meshStandardMaterial color="#15171f" roughness={0.86} />
+          <boxGeometry args={[0.19, 0.14, 1.72]} />
+          <meshStandardMaterial color="#E4E9F2" roughness={0.16} metalness={1} />
         </mesh>
-        {/* drive hub */}
-        <mesh position={[0, 0.16, 0]}>
-          <cylinderGeometry args={[0.2, 0.2, 0.05, 24]} />
-          <meshStandardMaterial color={STEEL} roughness={0.32} metalness={1} />
+        {/* centre reinforcement */}
+        <mesh>
+          <boxGeometry args={[0.22, 0.16, 0.4]} />
+          <meshStandardMaterial color="#8C95A8" roughness={0.3} metalness={1} />
         </mesh>
-        {/* tread teeth so the drum reads as it turns */}
-        {Array.from({ length: 14 }).map((_, i) => {
-          const a = (i / 14) * Math.PI * 2;
-          return (
-            <mesh key={i} position={[Math.cos(a) * 0.41, 0, Math.sin(a) * 0.41]} rotation={[0, -a, 0]}>
-              <boxGeometry args={[0.07, 0.32, 0.1]} />
-              <meshStandardMaterial color="#23283a" roughness={0.9} />
-            </mesh>
-          );
-        })}
+        {/* hardened tips */}
+        {[-1, 1].map((s) => (
+          <mesh key={s} position={[0, 0, s * 0.82]}>
+            <boxGeometry args={[0.22, 0.14, 0.24]} />
+            <meshStandardMaterial color="#7C8598" roughness={0.14} metalness={1} />
+          </mesh>
+        ))}
+        {/* bolt-on weights */}
+        {[-1, 1].map((s) => (
+          <mesh key={`w${s}`} position={[0, 0.075, s * 0.5]}>
+            <boxGeometry args={[0.18, 0.035, 0.18]} />
+            <DarkSteel />
+          </mesh>
+        ))}
       </group>
     </group>
   );
 }
 
-/** The spinning weapon bar on top. */
-function Weapon({ spin }: { spin: React.RefObject<number> }) {
-  const ref = useRef<THREE.Group>(null);
-  useFrame((_, dt) => {
-    if (ref.current && !prefersReducedMotion()) ref.current.rotation.y += dt * (spin.current ?? 1) * 6;
-  });
-  return (
-    <group ref={ref} position={[0.1, 0.62, 0]}>
-      {/* hub */}
-      <mesh>
-        <cylinderGeometry args={[0.16, 0.18, 0.22, 20]} />
-        <meshStandardMaterial color={STEEL} roughness={0.3} metalness={1} />
-      </mesh>
-      {/* bar */}
-      <mesh rotation={[0, 0, Math.PI / 2]}>
-        <boxGeometry args={[1.5, 0.09, 0.16]} />
-        <meshStandardMaterial color="#d7dce8" roughness={0.22} metalness={1} />
-      </mesh>
-      {/* hardened weapon tips */}
-      {[-1, 1].map((s) => (
-        <mesh key={s} position={[s * 0.78, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.13, 0.1, 0.2, 16]} />
-          <meshStandardMaterial color="#8f97a8" roughness={0.18} metalness={1} />
-        </mesh>
-      ))}
-      {/* spinner glow */}
-      <mesh position={[0, 0.13, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.2, 0.34, 28]} />
-        <Glow color={COLORS.sun} intensity={2.4} />
-      </mesh>
-    </group>
-  );
-}
-
-export function WarBot({ still = true }: { still?: boolean }) {
-  const shadowTex = useShadowTexture();
-  const spin = useRef(still ? 0 : 1);
+export function WarBot({ animate = false }: { animate?: boolean }) {
+  const spin = useRef(animate ? 1 : 0);
 
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.78, 0]} scale={[3.6, 2.2, 1]}>
-        <planeGeometry args={[1, 1]} />
-        <meshBasicMaterial map={shadowTex} transparent depthWrite={false} />
-      </mesh>
+      <Shadow y={-0.46} scale={[4.3, 2.8]} />
 
-      <group rotation={[0, -0.55, 0]} position={[0, 0, 0]}>
-        {/* main chassis */}
-        <RBox size={[2.1, 0.42, 1.25]} radius={0.12} position={[0, 0.05, 0]}>
-          <meshStandardMaterial color={SHELL} roughness={0.45} metalness={0.55} />
+      {/* ── hull ── */}
+      <RBox size={[1.5, 0.32, 0.9]} radius={0.05} position={[0.06, 0, 0]}>
+        <Graphite />
+      </RBox>
+      {/* lower skid plate */}
+      <RBox size={[1.54, 0.05, 0.94]} radius={0.02} position={[0.06, -0.17, 0]}>
+        <Panel />
+      </RBox>
+      {/* top armour */}
+      <RBox size={[1.32, 0.06, 0.82]} radius={0.02} position={[0.02, 0.19, 0]} rotation={[0, 0, -0.05]}>
+        <GraphiteLight />
+      </RBox>
+      {/* rear deck */}
+      <RBox size={[0.46, 0.05, 0.76]} radius={0.02} position={[-0.62, 0.23, 0]}>
+        <Deck />
+      </RBox>
+
+      {/* ── front wedge ── */}
+      <group position={[0.88, -0.03, 0]} rotation={[0, 0, -WEDGE_TILT]}>
+        <RBox size={[0.52, 0.07, 0.96]} radius={0.02}>
+          <meshStandardMaterial color="#313744" roughness={0.48} metalness={0.6} />
         </RBox>
-        {/* lower armour skirt */}
-        <RBox size={[2.2, 0.16, 1.35]} radius={0.06} position={[0, -0.16, 0]}>
-          <meshStandardMaterial color={SHELL_DARK} roughness={0.62} metalness={0.4} />
-        </RBox>
-
-        {/* wedge front — a tilted plate that rides up over the opponent */}
-        <group position={[1.12, 0.16, 0]} rotation={[0, 0, -0.42]}>
-          <RBox size={[0.9, 0.1, 1.18]} radius={0.04}>
-            <meshStandardMaterial color={STEEL} roughness={0.24} metalness={1} />
-          </RBox>
-        </group>
-
-        {/* drum wheels */}
-        {[-1, 1].map((side) => (
-          <Drum key={side} position={[-0.1, -0.3, side * 0.78]} spin={spin} />
-        ))}
-
-        {/* weapon assembly */}
-        <Weapon spin={spin} />
-
-        {/* electronics pod + status strip */}
-        <RBox size={[0.62, 0.3, 0.62]} radius={0.07} position={[-0.72, 0.4, 0]}>
-          <meshStandardMaterial color={SHELL_DARK} roughness={0.55} metalness={0.35} />
-        </RBox>
-        <mesh position={[-0.72, 0.56, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.14, 20]} />
-          <Glow color={COLORS.mint} intensity={2.2} />
+        {/* amber warning strip behind the leading edge */}
+        <mesh position={[0.14, 0.042, 0]}>
+          <boxGeometry args={[0.05, 0.012, 0.9]} />
+          <Amber intensity={1.5} />
         </mesh>
+        {/* teeth along the leading edge */}
+        {Array.from({ length: 7 }).map((_, i) => (
+          <mesh key={i} position={[0.28, -0.06, -0.36 + i * 0.12]} rotation={[0, 0, 0.3]}>
+            <boxGeometry args={[0.13, 0.09, 0.08]} />
+            <Steel />
+          </mesh>
+        ))}
+      </group>
+      {/* wedge gussets */}
+      {[-1, 1].map((s) => (
+        <mesh key={s} position={[0.74, -0.06, s * 0.42]} rotation={[0, 0, -WEDGE_TILT]}>
+          <boxGeometry args={[0.5, 0.2, 0.05]} />
+          <Panel />
+        </mesh>
+      ))}
 
-        {/* front bumper bar */}
-        <mesh position={[1.02, -0.14, 0]} rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.06, 0.06, 1.3, 14]} />
-          <Metal />
+      {/* ── exposed drive wheels ── */}
+      {[
+        [-0.45, -1],
+        [-0.45, 1],
+        [0.44, -1],
+        [0.44, 1],
+      ].map(([x, z]) => (
+        <group key={`${x}-${z}`}>
+          <Wheel position={[x, -0.16, z * 0.53]} radius={0.3} width={0.24} lugs={14} />
+          {/* axle hub cover */}
+          <mesh position={[x, -0.16, z * 0.665]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.1, 0.1, 0.045, 16]} />
+            <DarkSteel />
+          </mesh>
+        </group>
+      ))}
+
+      {/* ── side armour rails ── */}
+      {[-1, 1].map((s) => (
+        <group key={s}>
+          <RBox size={[1.34, 0.16, 0.045]} radius={0.02} position={[0.02, 0.09, s * 0.47]}>
+            <GraphiteLight />
+          </RBox>
+          <mesh position={[0.06, 0.12, s * 0.497]}>
+            <boxGeometry args={[0.72, 0.026, 0.012]} />
+            <Amber intensity={2.2} />
+          </mesh>
+          {[-0.5, 0.5].map((x) => (
+            <Bolt key={x} position={[x, 0.09, s * 0.5]} rotation={[Math.PI / 2, 0, 0]} />
+          ))}
+        </group>
+      ))}
+
+      {/* top plate bolts */}
+      {[
+        [-0.5, -0.3],
+        [-0.5, 0.3],
+        [0.5, -0.3],
+        [0.5, 0.3],
+      ].map(([x, z], i) => (
+        <Bolt key={i} position={[x, 0.225, z]} size={0.028} />
+      ))}
+
+      {/* ── weapon boom + front spinner ── */}
+      <RBox size={[0.2, 0.26, 0.24]} radius={0.03} position={[1.18, 0.2, 0]}>
+        <Panel />
+      </RBox>
+      <Rod a={[0.8, 0.16, 0]} b={[1.16, 0.3, 0]} r={0.05}>
+        <Steel />
+      </Rod>
+      {/* drive motor */}
+      <RBox size={[0.28, 0.22, 0.34]} radius={0.04} position={[0.56, 0.15, 0]}>
+        <DarkSteel />
+      </RBox>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <mesh key={i} position={[0.46 + i * 0.05, 0.15, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.115, 0.115, 0.012, 18]} />
+          <GraphiteLight />
+        </mesh>
+      ))}
+      <Spinner spin={spin} />
+
+      {/* ── top plate detailing ── */}
+      <RBox size={[0.36, 0.08, 0.52]} radius={0.03} position={[-0.2, 0.26, 0]}>
+        <GraphiteLight />
+      </RBox>
+      <mesh position={[-0.2, 0.303, 0]}>
+        <boxGeometry args={[0.22, 0.01, 0.04]} />
+        <Cyan intensity={1.8} />
+      </mesh>
+      {[-0.16, 0.16].map((z) => (
+        <mesh key={z} position={[-0.12, 0.228, z]}>
+          <boxGeometry args={[0.74, 0.014, 0.06]} />
+          <Panel />
+        </mesh>
+      ))}
+      {[-0.34, 0.34].map((z) => (
+        <mesh key={`e${z}`} position={[0.34, 0.228, z]}>
+          <boxGeometry args={[0.3, 0.012, 0.05]} />
+          <DarkSteel />
+        </mesh>
+      ))}
+
+      {/* ── rear self-righting wing ── */}
+      <group position={[-0.7, 0.3, 0]} rotation={[0, 0, 0.55]}>
+        <RBox size={[0.36, 0.05, 0.8]} radius={0.02}>
+          <GraphiteLight />
+        </RBox>
+        <mesh position={[-0.16, 0.012, 0]}>
+          <boxGeometry args={[0.03, 0.04, 0.8]} />
+          <Amber intensity={2} />
         </mesh>
       </group>
+
+      {/* ── power, receiver, status ── */}
+      <RBox size={[0.36, 0.18, 0.52]} radius={0.03} position={[-0.66, 0.34, 0]}>
+        <Panel />
+      </RBox>
+      <mesh position={[-0.66, 0.435, 0.13]}>
+        <boxGeometry args={[0.24, 0.012, 0.035]} />
+        <Amber intensity={2.6} />
+      </mesh>
+      <mesh position={[-0.66, 0.435, -0.06]}>
+        <boxGeometry args={[0.24, 0.012, 0.035]} />
+        <Cyan intensity={2.4} />
+      </mesh>
+      {/* power switch */}
+      <mesh position={[-0.66, 0.435, 0.28]} rotation={[0, 0, 0]}>
+        <cylinderGeometry args={[0.045, 0.045, 0.03, 12]} />
+        <Steel />
+      </mesh>
+      <Rod a={[-0.78, 0.42, -0.18]} b={[-0.92, 0.92, -0.24]} r={0.01}>
+        <DarkSteel />
+      </Rod>
+
+      {/* rear bumper + number plate */}
+      <mesh position={[-0.87, 0.02, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[0.62, 0.12]} />
+        <meshStandardMaterial color="#E8C170" roughness={0.55} metalness={0.15} />
+      </mesh>
+      <mesh position={[-0.88, -0.02, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.03, 0.03, 0.88, 12]} />
+        <DarkSteel />
+      </mesh>
     </group>
   );
 }
 
 export default function WarBot3D({ className }: { className?: string }) {
-  const [ok] = useState(hasWebGL);
-  const wrap = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = wrap.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { rootMargin: "120px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
   return (
-    <div ref={wrap} className={className} aria-hidden="true">
-      {ok && (
-        <Canvas
-          dpr={[1, 2]}
-          frameloop={visible ? "always" : "never"}
-          camera={{ position: [0, 1.7, 5.8], fov: 30 }}
-          gl={{ antialias: true, alpha: true }}
-          onCreated={({ camera }) => camera.lookAt(0, 0.1, 0)}
-        >
-          <Studio />
-          <ambientLight intensity={0.25} />
-          <directionalLight position={[3, 5, 4]} intensity={2.1} />
-          <pointLight position={[-4, 1, -2]} intensity={45} color="#5B7CFF" />
-          <pointLight position={[3.5, -1, 3]} intensity={14} color="#FFC857" />
-          <WarBot />
-        </Canvas>
-      )}
-    </div>
+    <Stage className={className} camera={[2.9, 1.12, 3.8]} target={[0.18, 0.14, 0]}>
+      <group rotation={[0, -0.24, 0]}>
+        <WarBot />
+      </group>
+    </Stage>
   );
 }

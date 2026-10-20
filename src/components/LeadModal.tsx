@@ -99,7 +99,7 @@ export default function LeadModal({ open, onClose, onSuccess }: Props) {
 
     setPhase("sending");
     try {
-      await sendLeadToBackend(lead);
+      await sendLeadToBackend(lead, { hp: honey, elapsedMs: Date.now() - openedAt });
       persistUnlock(lead);
       setPhase("success");
       /* Let the success animation play, then hand over to the app. */

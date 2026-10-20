@@ -54,21 +54,45 @@ export function persistUnlock(lead: LeadPayload) {
 /* ── Transport ──────────────────────────────────────────────── */
 
 /**
- * POSTs the lead to the configured webhook (Apps Script / Supabase /
- * Firebase / any JSON endpoint). Uses `text/plain` + `no-cors` so the
- * request reaches Google Apps Script without a CORS preflight.
+ * Extra anti-spam signals the server can check. They are advisory:
+ * the server validates them, but never trusts the client for anything
+ * that matters.
  */
-export async function sendLeadToBackend(payload: LeadPayload): Promise<void> {
-  if (!CONFIG.LEAD_WEBHOOK_URL) {
+export interface LeadSpamSignals {
+  /** Honeypot field value — must be empty for a genuine lead. */
+  hp?: string;
+  /** Milliseconds the visitor spent filling the form. */
+  elapsedMs?: number;
+}
+
+/**
+ * POSTs the lead to the configured endpoint.
+ *
+ * - Same-origin path (default "/api/send-lead"): plain JSON POST to our
+ *   own serverless function — no CORS preflight, no secrets in the browser.
+ * - Absolute URL (Apps Script / Supabase / Firebase): uses `no-cors` +
+ *   `text/plain`, which Google Apps Script accepts without CORS setup.
+ */
+export async function sendLeadToBackend(payload: LeadPayload, signals: LeadSpamSignals = {}): Promise<void> {
+  const url = CONFIG.LEAD_WEBHOOK_URL;
+  if (!url) {
     console.info("[KProjectXX] LEAD_WEBHOOK_URL not configured — lead payload:", payload);
     return;
   }
-  await fetch(CONFIG.LEAD_WEBHOOK_URL, {
+
+  const sameOrigin = url.startsWith("/");
+  const res = await fetch(url, {
     method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload),
+    ...(sameOrigin ? {} : { mode: "no-cors" as const }),
+    headers: { "Content-Type": sameOrigin ? "application/json" : "text/plain;charset=utf-8" },
+    body: JSON.stringify({ ...payload, ...signals }),
   });
+
+  /* A same-origin call can report failure — surface it so the form shows
+     an error instead of pretending the lead was captured. */
+  if (sameOrigin && !res.ok) {
+    throw new Error(`Lead endpoint responded ${res.status}`);
+  }
 }
 
 /* ── Team notification helpers ──────────────────────────────── */

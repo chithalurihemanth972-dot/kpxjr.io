@@ -2,17 +2,18 @@
    KProjectXX — SITE CONFIGURATION (edit me!)
    ─────────────────────────────────────────────────────────────
    1) LEAD CAPTURE BACKEND
-      Paste your endpoint into LEAD_WEBHOOK_URL below. The site
-      POSTs a JSON payload to it on every lead / callback request:
+      The site POSTs a JSON payload to LEAD_WEBHOOK_URL on every
+      lead / callback request:
         { name, mobile, type, school, source, timestamp }
 
-      Easiest option — Google Sheets via Apps Script:
-        a. Create a Google Sheet → Extensions → Apps Script
-        b. Paste the ready-made script from SETUP.md (in this repo)
-        c. Deploy as Web App (access: "Anyone") → copy the URL here
+      Default: "/api/send-lead" — the serverless function in
+      `api/send-lead.ts`, which emails the team over SMTP. The SMTP
+      user + app password are Vercel server env vars (SMTP_USER /
+      SMTP_PASS), so they never reach the browser.
 
-      Also works with Supabase / Firebase / any webhook that
-      accepts a JSON POST.
+      Google Apps Script (see lead-notifier.gs), Supabase, Firebase
+      and any webhook that accepts a JSON POST work too — just paste
+      that URL here.
 
       If the URL is left empty the site still works — leads are
       stored in the visitor's browser and logged to the console.
@@ -24,8 +25,17 @@
       ═══════════════════════════════════════════════════════════════ */
 
 export const CONFIG = {
-  /** ← PASTE YOUR GOOGLE APPS SCRIPT / SUPABASE / FIREBASE WEBHOOK URL HERE */
-  LEAD_WEBHOOK_URL: "",
+  /**
+   * Where leads are POSTed.
+   *
+   * "/api/send-lead" → the bundled serverless function (`api/send-lead.ts`)
+   * that emails the team over SMTP. The SMTP credentials live in server
+   * env vars, so nothing secret is ever shipped to the browser.
+   *
+   * You can also paste an external URL here (Google Apps Script / Supabase /
+   * Firebase) to use that instead.
+   */
+  LEAD_WEBHOOK_URL: "/api/send-lead",
 
   /** Team WhatsApp number (digits only, with country code) — used for wa.me links */
   TEAM_WHATSAPP: "918008115595",

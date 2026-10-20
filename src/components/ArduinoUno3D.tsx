@@ -313,7 +313,7 @@ export default function ArduinoUno3D({
   );
 
   return (
-    <group rotation={rotation} scale={0.98}>
+    <group rotation={rotation} scale={1.15}>
       {/* ── PCB ── */}
       <RBox size={[W, T, D]} radius={0.03} position={[0, -T / 2, 0]}>
         <primitive object={m.pcb} attach="material" />

@@ -35,8 +35,11 @@ const TEAM_WHATSAPP = process.env.TEAM_WHATSAPP || "918008115595";
 const MAX_NAME = 80;
 const MAX_SCHOOL = 120;
 const MIN_FILL_MS = 2000; // faster than this = bot
-const RATE_LIMIT = 5; // leads per IP
-const RATE_WINDOW_MS = 10 * 60 * 1000;
+/* Per-IP rate limit. Generous on purpose: a school or college network
+   shares one NAT IP, so many real parents can arrive from the same
+   address. Still low enough to blunt a spam run. */
+const RATE_LIMIT = Number(process.env.RATE_LIMIT_MAX || 20); // leads per IP
+const RATE_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 10 * 60 * 1000);
 
 const ROLES = ["Parent", "Guide", "School"] as const;
 const SOURCES = ["kpx_unlock", "callback_request"] as const;

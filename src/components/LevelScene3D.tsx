@@ -2,8 +2,9 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { prefersReducedMotion } from "../lib/hooks";
-import { COLORS, Glow, hasWebGL, makeGearGeometry, Metal, RBox, Studio, Visor } from "./Robot3D";
+import { COLORS, hasWebGL, makeGearGeometry, RBox, Studio } from "./Robot3D";
 import { Rover } from "./Rover3D";
+import ArduinoUno3D from "./ArduinoUno3D";
 
 /* ═══════════════════════════════════════════════════════════════
    LevelScene3D — one floating hero object per KPX Jr level.
@@ -65,55 +66,9 @@ function Gears({ color }: { color: string }) {
   );
 }
 
-/* ── Level 2: microcontroller board ─────────────────────────── */
+/* ── Level 2: a realistic Arduino Uno ────────────────────────── */
 function Board({ color }: { color: string }) {
-  const pins = useMemo(() => Array.from({ length: 12 }, (_, i) => -1.3 + i * 0.236), []);
-  return (
-    <group rotation={[0.85, -0.55, 0.12]} scale={1.05}>
-      <RBox size={[3.4, 0.12, 2.2]} radius={0.05}>
-        <meshPhysicalMaterial color="#0d2e55" roughness={0.4} metalness={0.3} clearcoat={0.8} />
-      </RBox>
-      {/* accent traces */}
-      {[-0.55, 0, 0.55].map((z) => (
-        <mesh key={z} position={[0.2, 0.07, z]}>
-          <boxGeometry args={[1.6, 0.012, 0.03]} />
-          <Glow color={color} intensity={1.4} />
-        </mesh>
-      ))}
-      {/* main chip */}
-      <RBox size={[0.95, 0.14, 0.95]} radius={0.05} position={[0.35, 0.13, 0]}>
-        <Visor />
-      </RBox>
-      <mesh position={[0.35, 0.215, 0]}>
-        <boxGeometry args={[0.3, 0.012, 0.3]} />
-        <Glow color={color} intensity={1.8} />
-      </mesh>
-      {/* USB port */}
-      <RBox size={[0.7, 0.46, 0.62]} radius={0.04} position={[-1.45, 0.28, -0.4]}>
-        <Metal />
-      </RBox>
-      {/* header pins */}
-      {pins.map((x) => (
-        <group key={x}>
-          <mesh position={[x, 0.17, 1.0]}>
-            <boxGeometry args={[0.1, 0.22, 0.1]} />
-            <meshStandardMaterial color="#10142a" />
-          </mesh>
-          <mesh position={[x, 0.17, -1.0]}>
-            <boxGeometry args={[0.1, 0.22, 0.1]} />
-            <meshStandardMaterial color="#10142a" />
-          </mesh>
-        </group>
-      ))}
-      {/* status LEDs */}
-      {[color, COLORS.sun, COLORS.mint].map((c, i) => (
-        <mesh key={c} position={[-0.7 + i * 0.28, 0.1, 0.62]}>
-          <boxGeometry args={[0.16, 0.06, 0.1]} />
-          <Glow color={c} intensity={2.6} />
-        </mesh>
-      ))}
-    </group>
-  );
+  return <ArduinoUno3D color={color} />;
 }
 
 /* ── Level 3: a 3D Wi-Fi signal ─────────────────────────────── */
@@ -211,10 +166,25 @@ export default function LevelScene3D({ level, color, className }: { level: numbe
           gl={{ antialias: true, alpha: true }}
         >
           <Studio />
-          <ambientLight intensity={0.25} />
-          <directionalLight position={[3.5, 4.5, 4]} intensity={2.2} />
-          <pointLight position={[-4, 1.5, -2]} intensity={55} color={color} />
-          <pointLight position={[3.5, -1.5, 3]} intensity={12} color="#FFC857" />
+          {level === 2 ? (
+            /* Level 2 shows a real Arduino board, so it gets neutral
+               product lighting instead of the neon wash — the LEDs and
+               the cyan rim keep the scene's identity. */
+            <>
+              <ambientLight intensity={0.5} />
+              <directionalLight position={[3.5, 5, 4]} intensity={2.5} />
+              <directionalLight position={[-4, 2, -3]} intensity={0.9} color="#BFD4FF" />
+              <pointLight position={[3.5, -1.5, 3]} intensity={9} color="#FFC857" />
+              <pointLight position={[-3, 1, 2]} intensity={14} color={color} />
+            </>
+          ) : (
+            <>
+              <ambientLight intensity={0.25} />
+              <directionalLight position={[3.5, 4.5, 4]} intensity={2.2} />
+              <pointLight position={[-4, 1.5, -2]} intensity={55} color={color} />
+              <pointLight position={[3.5, -1.5, 3]} intensity={12} color="#FFC857" />
+            </>
+          )}
           <Scene key={level} level={level} color={color} />
         </Canvas>
       )}
